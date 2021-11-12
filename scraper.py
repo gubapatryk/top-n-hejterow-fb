@@ -1,11 +1,16 @@
+# CNN's profile might already be moderated
+
+
 from facebook_scraper import get_posts
+import nltk
+from nltk.sentiment import SentimentIntensityAnalyzer
 
 #name of facebook page
-name = 'partia.korwin.jkm'
+name = 'cnn'
 
 people = {}
 
-for post in get_posts(name, pages = 1, options = {"comments": True}, cookies = 'cookies.txt'):
+for post in get_posts(name, pages = 10, options = {"comments": True}, cookies = 'cookies.txt'):
     for comment in post['comments_full']:
         #original commenter name
         op_name = comment['commenter_name']
@@ -27,3 +32,21 @@ for post in get_posts(name, pages = 1, options = {"comments": True}, cookies = '
 
 for person, comments in people.items():
     print(person, 'made', str(len(comments)), 'comments')
+
+sia = SentimentIntensityAnalyzer()
+
+negative_comments = []
+
+for person, comments in people.items():
+    tmp = [0, person, []]
+    for comment in comments:
+        if sia.polarity_scores(comment)["compound"] < 0:
+            tmp[0] += 1
+            tmp[2].append(comment)
+    if tmp[0] > 0:
+        negative_comments.append(tmp)
+
+negative_comments.sort()
+
+for hater in range(5):
+    print(negative_comments[hater][1], "made", negative_comments[hater][0], "negative_comments, first 5:", negative_comments[hater][2][:5])
