@@ -1,12 +1,11 @@
-# CNN's profile might already be moderated
-
+###################################################################
+#               Extracting the data from website                  #
+###################################################################
 
 from facebook_scraper import get_posts
-import nltk
-from nltk.sentiment import SentimentIntensityAnalyzer
 
 #name of facebook page
-name = 'cnn'
+name = 'NigazzHouseofRamen'
 
 people = {}
 
@@ -29,24 +28,49 @@ for post in get_posts(name, pages = 10, options = {"comments": True}, cookies = 
                     people[re_name].append(re_text)
                 else:
                     people[re_name] = [re_text]
-
+overall = 0
 for person, comments in people.items():
+    overall += len(comments)
     print(person, 'made', str(len(comments)), 'comments')
+print('overall there are {} comments to be analyzed'.format(overall))
 
-sia = SentimentIntensityAnalyzer()
+###################################################################
+#       Analyzing the comments using Azure Cognitive Services     #
+###################################################################
+
+key = ""
+endpoint = "https://comment-analyzer.cognitiveservices.azure.com/"
+
+from azure.ai.textanalytics import TextAnalyticsClient
+from azure.core.credentials import AzureKeyCredential
+
+# Authenticate the client using your key and endpoint
+def authenticate_client():
+    ta_credential = AzureKeyCredential(key)
+    text_analytics_client = TextAnalyticsClient(
+            endpoint = endpoint,
+            credential = ta_credential)
+    return text_analytics_client
+
+client = authenticate_client()
+
+# function for detecting negative sentiment in comments
+def is_negative(comment, client):
+    response = client.analyze_sentiment(documents = [comment])[0]
+    return (response.sentiment == "negative")
 
 negative_comments = []
 
 for person, comments in people.items():
     tmp = [0, person, []]
     for comment in comments:
-        if sia.polarity_scores(comment)["compound"] < 0:
+        if is_negative(comment, client):
             tmp[0] += 1
             tmp[2].append(comment)
     if tmp[0] > 0:
         negative_comments.append(tmp)
 
-negative_comments.sort()
+negative_comments.sort(reverse = True)
 
 for hater in range(5):
     print(negative_comments[hater][1], "made", negative_comments[hater][0], "negative_comments, first 5:", negative_comments[hater][2][:5])
