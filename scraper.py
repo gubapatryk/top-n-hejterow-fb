@@ -4,73 +4,80 @@
 
 from facebook_scraper import get_posts
 
-#name of facebook page
-name = 'NigazzHouseofRamen'
-
-people = {}
-
-for post in get_posts(name, pages = 10, options = {"comments": True}, cookies = 'cookies.txt'):
-    for comment in post['comments_full']:
-        #original commenter name
-        op_name = comment['commenter_name']
-        op_text = comment['comment_text']
-        if op_text != 'None':
-            if op_name in people:
-                people[op_name].append(op_text)
-            else:
-                people[op_name] = [op_text]
-        for reply in comment['replies']:
-            #replier name
-            re_name = reply['commenter_name']
-            re_text = reply['comment_text']
-            if re_text != 'None':
-                if re_name in people:
-                    people[re_name].append(re_text)
-                else:
-                    people[re_name] = [re_text]
-overall = 0
-for person, comments in people.items():
-    overall += len(comments)
-    print(person, 'made', str(len(comments)), 'comments')
-print('overall there are {} comments to be analyzed'.format(overall))
-
-###################################################################
-#       Analyzing the comments using Azure Cognitive Services     #
-###################################################################
-
-key = ""
-endpoint = "https://comment-analyzer.cognitiveservices.azure.com/"
-
 from azure.ai.textanalytics import TextAnalyticsClient
 from azure.core.credentials import AzureKeyCredential
 
-# Authenticate the client using your key and endpoint
-def authenticate_client():
-    ta_credential = AzureKeyCredential(key)
-    text_analytics_client = TextAnalyticsClient(
-            endpoint = endpoint,
-            credential = ta_credential)
-    return text_analytics_client
+def scrape(name = 'cnn', _pages = 1):
+    #name of facebook page
 
-client = authenticate_client()
+    result = ""
 
-# function for detecting negative sentiment in comments
-def is_negative(comment, client):
-    response = client.analyze_sentiment(documents = [comment])[0]
-    return (response.sentiment == "negative")
+    people = {}
 
-negative_comments = []
+    for post in get_posts(name, pages = _pages, options = {"comments": True}, cookies = 'cookies.txt'):
+        for comment in post['comments_full']:
+            #original commenter name
+            op_name = comment['commenter_name']
+            op_text = comment['comment_text']
+            if op_text != 'None':
+                if op_name in people:
+                    people[op_name].append(op_text)
+                else:
+                    people[op_name] = [op_text]
+            for reply in comment['replies']:
+                #replier name
+                re_name = reply['commenter_name']
+                re_text = reply['comment_text']
+                if re_text != 'None':
+                    if re_name in people:
+                        people[re_name].append(re_text)
+                    else:
+                        people[re_name] = [re_text]
+    overall = 0
+    for person, comments in people.items():
+        overall += len(comments)
+        #print(person, 'made', str(len(comments)), 'comments')
+    result += '\n' + ('overall there are {} comments to be analyzed'.format(overall))
 
-for person, comments in people.items():
-    tmp = [0, person, []]
-    for comment in comments:
-        if is_negative(comment, client):
-            tmp[0] += 1
-            tmp[2].append(comment)
-    if tmp[0] > 0:
-        negative_comments.append(tmp)
+    ###################################################################
+    #       Analyzing the comments using Azure Cognitive Services     #
+    ###################################################################
 
-negative_comments.sort(reverse = True)
+    key = ""
+    endpoint = "https://comment-analyzer.cognitiveservices.azure.com/"
 
-for hater in range(5):
-    print(negative_comments[hater][1], "made", negative_comments[hater][0], "negative_comments, first 5:", negative_comments[hater][2][:5])
+
+    # Authenticate the client using your key and endpoint
+    def authenticate_client():
+        ta_credential = AzureKeyCredential(key)
+        text_analytics_client = TextAnalyticsClient(
+                endpoint = endpoint,
+                credential = ta_credential)
+        return text_analytics_client
+
+    client = authenticate_client()
+
+    # function for detecting negative sentiment in comments
+    def is_negative(comment, client):
+        response = client.analyze_sentiment(documents = [comment])[0]
+        return (response.sentiment == "negative")
+
+    negative_comments = []
+
+    for person, comments in people.items():
+        tmp = [0, person, []]
+        for comment in comments:
+            if is_negative(comment, client):
+                tmp[0] += 1
+                tmp[2].append(comment)
+        if tmp[0] > 0:
+            negative_comments.append(tmp)
+
+    negative_comments.sort(reverse = True)
+
+    for hater in range(min(5, len(negative_comments))):
+        result += '\n' + (negative_comments[hater][1], "made", negative_comments[hater][0], "negative_comments, first 5:", negative_comments[hater][2][:5])
+
+    return result
+
+scrape('cnn', 1)
