@@ -1,13 +1,29 @@
 # top-n-hejterow-fb
 
-Setting up Python azure function: https://docs.microsoft.com/en-us/azure/azure-functions/create-first-function-cli-python?tabs=azure-cli%2Cbash%2Cbrowser
+Projekt dwuosobowy realizowany w semestrze 2021Z w ramach przedmiotu Wprowadzenie do aplikacji i rozwiązań opartych o Sztuczną Inteligencję i Microsoft Azure.
 
-Setting up sentiment analysis in azure: https://docs.microsoft.com/en-us/azure/cognitive-services/language-service/sentiment-opinion-mining/quickstart?pivots=programming-language-python
+Celem projektu było stoworzenie prostego serwisu w chmurze Azure wyszukującego nieprzychylne komentarze na stronach marek bądź osób publicznych i grupowanie ich w celu ustalenia czy osoba publikująca je nie jest usilnym hejterem próbującym zniszczyć wizerunek marki poprzez częste komentowanie negatywnych informacji pod postami strony.
 
-To view results:
-1. Go to https://topfacebookhaters.azurewebsites.net/api/findhaters?name=wawerposting
-2. *wait couple of minutes because "scraping is a process"*
-3. Read comments
-4. Enjoy
+## Diagram rozwiązania
+![Diagram](https://raw.githubusercontent.com/gubapatryk/top-n-hejterow-fb/main/diagram.png)
 
-!!! Don't make too many calls or else our scraper might get banned :( !!!
+## Film z demo działania rozwiązania
+
+[![Film](https://img.youtube.com/vi/nNFsQOQ9-wc/0.jpg)](https://www.youtube.com/watch?v=nNFsQOQ9-wc)
+
+## Zespół
+[Patryk Guba](https://github.com/gubapatryk)
+[Maxymilian Kowalski](https://github.com/maxxx958)
+
+## Opis funkcjonalności
+
+Stworzone rozwiązanie pozwala na przeanalizowanie komentarzy w postach na stronie dla podanego id strony na Facebooku i zwrócenie listy osób piszących największą ilość "hejtujących" komentarzy.
+Z rozwiązania korzystamy poprzez wysłanie zapytania HTTP GET do bezserwerowej funkcji z parametrem "name" reprezentującym id strony.
+Jako odpowiedź na zapytanie zostaje zwrócony tekstowy raport zawierający sumę komentarzy dla poszczególnych użytkowników strony, ze szczególnym uwzględnieniem listy "hejterów", czyli osób, które pisały najwięcej komentarzy o negatywnym zabarwieniu emocjonalnym.
+
+## Stos technologiczny
+
+Cognitive services - Language sentiment detection  - wykrywanie sentymentu komentarzy
+Function app - uruchomienie bezserwerowej funkcji w pythonie obsługującej zapytania HTTP
+
+
