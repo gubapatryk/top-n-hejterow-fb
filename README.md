@@ -17,13 +17,22 @@ Celem projektu było stoworzenie prostego serwisu w chmurze Azure wyszukującego
 
 ## Opis funkcjonalności
 
-Stworzone rozwiązanie pozwala na przeanalizowanie komentarzy w postach na stronie dla podanego id strony na Facebooku i zwrócenie listy osób piszących największą ilość "hejtujących" komentarzy.  
+Tworzenie raportu zawierającego sumę komentarzy dla poszczególnych użytkowników strony dla podanego przez użytkownika id strony, ze szczególnym uwzględnieniem listy "hejterów", czyli osób, które pisały najwięcej komentarzy o negatywnym zabarwieniu emocjonalnym.
+
+## Schemat działania
+
 Z rozwiązania korzystamy poprzez wysłanie zapytania HTTP GET do bezserwerowej funkcji z parametrem "name" reprezentującym id strony.  
-Jako odpowiedź na zapytanie zostaje zwrócony tekstowy raport zawierający sumę komentarzy dla poszczególnych użytkowników strony, ze szczególnym uwzględnieniem listy "hejterów", czyli osób, które pisały najwięcej komentarzy o negatywnym zabarwieniu emocjonalnym.
+Po otrzymaniu prawidłowego parametru "name", funkcja rozpoczyna webscrapowanie podanej strony na Facebooku pod kątem występujących na niej komentarzy.  
+Komentarze są analizowane pod kątem zabarwienia emocjonalnego z wykorzystaniem serwisu Language sentiment detection z Azure i grupowane według autorów.
+Jako odpowiedź na zapytanie zostaje zwrócony tekstowy raport z sumą komentarzy poszczególnych użytkowników i listą komentarzy wykrytych "hejterów".
 
 ## Stos technologiczny
 
-Cognitive services - Language sentiment detection  - wykrywanie sentymentu komentarzy  
+### Azure:
+Azure Cognitive services - Language sentiment detection  - wykrywanie sentymentu komentarzy  
 Function app - uruchomienie bezserwerowej funkcji w pythonie obsługującej zapytania HTTP
 
+### Inne technologie:
+Biblioteka w Python pozwalająca na łatwy webscrapping danych z Facebooka:
+https://github.com/kevinzg/facebook-scraper
 
